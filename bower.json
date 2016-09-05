@@ -1,0 +1,27 @@
+{
+	"name": "zousan-plus",
+	"version": "1.0.1",
+	"description": "Extensions for Zousan Promises",
+	"main": "zousan-plus-min.js",
+	"authors": [
+		"Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)"
+	],
+	"license": "MIT",
+	"keywords": [
+		"promise",
+		"zousan",
+		"promisify",
+		"async"
+	],
+	"homepage": "https://github.com/bluejava/zousan-plus",
+	"ignore": [
+		"**/.*",
+		"node_modules",
+		"bower_components",
+		"test",
+		"src"
+	],
+	"dependencies": {
+		"zousan": "^2.3.1"
+	}
+}

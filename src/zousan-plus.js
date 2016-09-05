@@ -1,3 +1,8 @@
+// zousan-plus : Extensions for Zousan Promises
+// Home: https://github.com/bluejava/zousan-plus
+// Author: Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)
+// License: MIT
+
 (function (global, factory) {
 	if(typeof define === "function" && define.amd)
 		define(["../node_modules/zousan/src/zousan"], factory)
