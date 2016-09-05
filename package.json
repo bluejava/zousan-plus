@@ -1,0 +1,19 @@
+{
+	"name": "zousan-plus",
+	"version": "1.0.0",
+	"description": "Extensions for Zousan Promises",
+	"main": "zousan-plus-min.js",
+	"scripts": {
+		"test": "tarsy test",
+		"build": "uglifyjs src/zousan-plus.js -c -m -o zousan-plus-min.js"
+	},
+	"author": "Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)",
+	"license": "MIT",
+	"dependencies": {
+		"zousan": "^2.2.2"
+	},
+	"devDependencies": {
+		"tarsy": "latest",
+		"uglifyjs": "latest"
+	}
+}

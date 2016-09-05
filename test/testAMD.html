@@ -1,0 +1,24 @@
+<html>
+	<head>
+		<script src="../node_modules/requirejs/require.js"></script>
+		<script>
+			require([
+					"../node_modules/tarsy/src/tarsy"
+				], function(Tarsy) {
+
+					// Make these global for the test
+					window.section = Tarsy.section
+					window.test = Tarsy.test
+					window.assert = Tarsy.assert
+
+					require(["test"])	// load the test suite
+
+					Tarsy.showResults()
+
+				})
+		</script>
+	</head>
+	<body>
+
+	</body>
+</html>

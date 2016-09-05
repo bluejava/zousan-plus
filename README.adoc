@@ -1,0 +1,207 @@
+= Zousan-plus 🐘➕
+:toc:
+
+== Introduction
+
+Extensions for https://github.com/bluejava/zousan[Zousan].
+
+The goal of Zousan was to stay small and light. But sometimes you wan't some additional expressive power. Rather than package that into Zousan, I decided to make a separate entry point - and give you the choice on a per-project basis.
+
+Just need lightning fast promises on the down low? Use https://github.com/bluejava/zousan[Zousan].
+
+Could benefit from additional expressive power ala `map`, `promisify`, `series`, etc? Use `Zousan-plus`.
+
+Of course, you can also just grab individual functions from this to paste into your project and use with Zousan or native Promises if you want to keep things minimal. This code is fairly small, well documented and easy to steal from. ;-)
+
+== Downloading
+
+Grab from the npm repository via:
+
+[source,bash]
+----
+npm install --save zousan-plus
+----
+
+Or just grab the single JavaScript file that you need: `zousan-plus.js` (or `zousan-plus-min.js` for a minimized version).
+
+== Loading / Instantiation
+
+=== commonJS
+
+If you are using Node or another commonJS-based module loader such as http://browserify.org[Browserify] or https://webpack.github.io[webpack], you can simply require the extended Zousan and assign to `Zousan`. There is no need to first define standard `zousan` and then extend it - this happens within `zousan-plus`
+
+[source,javascript]
+----
+var Zousan = require("zousan-plus"); // You now have an extended Zousan
+----
+
+=== AMD (requireJS)
+
+In similar fashion, you need only `require` the `zousan-plus` module, and it will internally first obtain a standard `zousan`, extend it, and return it:
+
+[source,javascript]
+----
+var Zousan = require(["zousan-plus"], function(Zousan) {
+	// Within this AMD require wrapper, we have access to
+	// an extended Zousan in the Zousan variable
+}
+----
+
+=== No Module Loader (Global)
+
+If you are not using a module loader and/or wish to define things globally, you must first load the standard `zousan` and then extend it by loading `zousan-plus`, such as:
+
+[source,html]
+----
+<script src="node_modules/zousan/zousan-min.js"></script>
+<script src="node_modules/zousan-plus/zousan-plus-min.js"></script>
+----
+
+== API
+
+=== `Zousan.map(array,fn) -> newArray`
+
+The `map` function takes an Array and a function and returns a new Array containing the result of passing each respective item from the first array through the function.
+
+This is much like the `Array.map` function, and in fact can be used interchangably in many instances. The difference is:
+
+. The `array` passed in may optionally be a `Promise` that resolves to an `Array`.
+. The function `fn` may return a value *or* a `Promise` which resolves to a value to be stored in the resulting `newArray`.
+. The items contained within the passed array may be `Promise` objects which will be resolved before passing the result into the mapping function `fn`.
+
+Some examples:
+
+.Here we behave just like Array.map
+[source,javascript]
+----
+var double = function(x) { return x * 2 }
+var array = [5,6,7]
+
+var newArray = Zousan.map(array, double)
+	.then(function(newArray) {
+			// newArray is [10,12,14]
+		})
+----
+
+.Using a transforming function that returns promises
+[source,javascript]
+----
+// returns a promise of a value which resolves in the specified ms
+var later = function(ms,val) {
+		return new Zousan(function(resolve,reject) {
+				setTimeout(resolve,ms,val)
+			})
+	}
+
+// returns a promise to triple the passed value in 100ms
+var tripleLater = function(x) { return later(100, x * 3) }
+
+var array = [5,6,7]
+
+var newArray = Zousan.map(array, tripleLater)
+	.then(function(newArray) {
+			// newArray is [15, 18, 21]
+		})
+----
+
+.A realistic and typical use case
+[source,javascript]
+----
+// Returns a promise to resolve to album information of the album ID specified
+function getAlbumInfo(albumId)
+{
+	return ajaxCall(getAlbumQueryURL(albumId))
+}
+
+// Pass in an array of album IDs and you will get a promise which resolves to
+// an array of album information objects respectively
+function getMultipleAlbumInfo(albumIdArray)
+{
+	return Zousan.map(albumIdArray, getAlbumInfo)
+}
+----
+
+=== `Zousan.promisify(object, conf) -> promisifiedObject`
+
+Pass in an Object with functions as properties and all functions that expect callbacks will be replaced with `Promise` based functions. The behavior of the promisification can be effected via the `conf` configuration object.
+
+Promisification is an imperfect process, as it can depend on how the underlying functions are written. This `promisify` function works by examining all functions contained on the object and if the argument list ends with one of the recognized callback names, it is promisified. The current list of callback arguments is `"cb", "callback", "done" and "callback_"`
+
+When a function is promisified, it replaces the function on the object with a function that returns a `Zousan Promise`. Callback functions are expected to be called with two arguments: `callback(error, value)`. The promise will resolve when the callback is called with a *null first argument*, using the *second argument* as the resolved value. If the first argument is non-null, the promise is rejected.
+
+NOTE: The promisified functions may still be used with callbacks.
+
+WARNING: In some cases, promisification has been known to break certain functions or objects. This is due to the nature in which functions are replaced within objects. Often these problems can be avoided by specifying only those functions that you need promisified in the `fnNames` configuration option.
+
+==== `conf` configuration options
+
+|===
+| `replaceAll` | Replace all functions within the specified objects rather than examining the arguments for the presence of a callback
+| `fnNames` | An array of function names to replace within the specified object. This overrides the default behavior of examining the last argument name of each function.
+| `cbArgNames` | An array of callback names which overrides the default list of `["cb", "callback", "done", "callback_"]`. It is the presence of one of these named arguments as the final argument of a function which triggers promisification (unless `replaceAll` or `fnNames` is used)
+|===
+
+=== `Zousan.promisifyFn(fn) -> promisifiedFn`
+
+Promisifies a single function `fn` and returns it.
+
+=== `Zousan.series(array | ...args) -> Promise`
+
+The `series` function takes a list of arguments or an array of values (which can be of any type, including *functions* and *promises*) and considers/processes them one by one. If an item is an Object or native type, it simply evaluates to itself. If it is a function, it evaluates to its return value. If it is a Promise, it evaluates to its resolved value. Similar to `compose` in functional libraries and langauges, when an item is a function or Promise, the value of the previous item is passed into that function or promise. The return value from a function or Promise is then used for the following item.
+
+.Example 1
+[source,javascript]
+----
+function add6(x) { return x + 6 }
+
+Zousan.series(1,2,3,add6,add6,log) // calls log with 15
+----
+
+The above function is essentially doing this:
+
+[source,javascript]
+----
+function add6(x) { return x + 6 }
+
+Zousan.resolve(1)
+	.then(function(x) { return 2 })
+	.then(function(x) { return 3 })
+	.then(add6)
+	.then(add6)
+	.then(log)
+----
+
+Of course it is very handy when used with Promises:
+
+[source,javascript]
+----
+// Pass in a userID and get back a promise of a list of album cover objects of this user
+function getUserAlbumCovers(userId)
+{
+	// In order to call getUserObj with the userId, we simply place userId first in the series
+	// getUserObj returns a promise of a user object
+	// prop is curried extracts a named property from an object
+	// getAlbumsByIDList returns a Promise of a list of album objects
+	// pluck is curried extracts a list of values from a list of objects and a property name
+	// getAlbumCoversByIDList expects an array of album IDs and returns a Promise of album cover objects
+	return Zousan.series(userId, getUserObj, prop("albumList"), getAlbumsByIDList, pluck("id"), getAlbumCoversByIDList)
+}
+----
+
+Which is equivilent to:
+[source,javascript]
+----
+// Pass in a userID and get back a promise of a list of album cover objects of this user
+function getUserAlbumCovers(userId)
+{
+	return getUserObj(userId)
+		.then(prop("albumList"))
+		.then(getAlbumsByIDList)
+		.then(pluck("id"))
+		.then(getAlbumCoversByIDList)
+}
+----
+
+== License
+
+See the LICENSE file for license rights and limitations (MIT).
