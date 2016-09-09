@@ -159,7 +159,7 @@
 
 				})
 
-			test("Process a series of functions and promises beginning with an initial value", function() {
+			test("Process a series of functions and functions that return promises", function() {
 
 					function add5(x) { return x + 5 }
 					function valueIn100(val) { return delayedValue(100,val) }
@@ -169,6 +169,117 @@
 
 				})
 
+			test("Process a series of functions, functions that return promises and direct promises", function() {
+
+					function add5(x) { return x + 5 }
+					function valueIn100(val) { return delayedValue(100,val) } // a function that returns a promise
+
+					var promiseOf2 = valueIn100(2) // a promise already "processing"
+
+					return Zousan.series(promiseOf2,valueIn100,add5,valueIn100,add5,valueIn100,add5)
+						.then(function(val) { assert.equal(val,17) })
+
+				})
+
+			test("A rejection mid-series halts processing the series and rejects the series promise", function() {
+
+					var y = 0
+					function incy() { y++ }
+					function reject() { return Zousan.reject("Test Rejection") }
+
+					return Zousan.series(incy,incy,incy,reject,incy,incy)
+						.catch(function(e) { y -= 5; return y })
+						.then(function() { assert.equal(y,-2) }) // should get +1 +1 +1 -5 = -2
+
+				})
+
+			test("An exception thrown in a mid-series function behaves just as a rejection above", function() {
+
+					var y = 0
+					function incy() { y++ }
+					function except() { throw Error("Test Exception") }
+
+					return Zousan.series(incy,incy,incy,except,incy,incy)
+						.catch(function(e) { y -= 5 })
+						.then(function() { assert.equal(y,-2) }) // should get +1 +1 +1 -5 = -2
+
+				})
+		})
+
+		section("tracking series (tSeries)", function() {
+
+			test("Process and track 3 native values", function() {
+
+					var ts = Zousan.tSeries(1,2,3)
+					return ts.prom.then(function(result) {
+						assert.equal(ts.res[0],1)
+						assert.equal(ts.res[1],2)
+						assert.equal(ts.res[2],3)
+						return result
+					})
+				})
+
+			test("Process a series of functions using previous results", function() {
+
+					function add5(x) { return x + 5 }
+					function sum(a,b) { return a + b }
+
+					var ts = Zousan.tSeries(
+							7,
+							add5, // 5 + 7 = 12
+							function() { return sum(ts.res[0],ts.res[1]) }, // sum last 2 results (12 + 7) = 19
+							function() { return sum(ts.res[0],ts.res[2]) } // sum first and last result (7 + 19) = 26
+						)
+					return ts.prom.then(function(result) {
+						assert.equal(ts.res[0],7)
+						assert.equal(ts.res[1],12)
+						assert.equal(ts.res[2],19)
+						assert.equal(ts.res[3],26)
+						return result
+					})
+				})
+
+			test("Process a series of functions and functions that return promises using tracked values", function() {
+
+					function add5(x) { return x + 5 }
+					function sum(a,b) { return a + b }
+					function valueIn100(val) { return delayedValue(100,val) }
+
+					var ts = Zousan.tSeries(
+							valueIn100(20),	// first item is a promise for 20
+							add5, // 2nd item adds 5 to previous result = 25
+							valueIn100, // this function takes previuos result, and returns promise to return it in 100ms (25)
+							function() { return sum(ts.res[0],ts.res[2]) } // function that adds first item (20) and third item (25) = 45
+							)
+
+					return ts.prom.then(function(result) {
+							assert.equal(result,45)
+						})
+				})
+
+			test("A rejection mid-series halts processing the series and rejects the series promise", function() {
+
+					var y = 0
+					function incy() { y++ }
+					function reject() { return Zousan.reject("Test Rejection") }
+
+					return Zousan.tSeries(incy,incy,incy,reject,incy,incy).prom
+						.catch(function(e) { y -= 5; return y })
+						.then(function() { assert.equal(y,-2) }) // should get +1 +1 +1 -5 = -2
+
+				})
+
+			test("An exception thrown in a mid-series function behaves just as a rejection above", function() {
+
+					var y = 0
+					function incy() { y++ }
+					function except() { throw Error("Test Exception") }
+
+					return Zousan.tSeries(incy,incy,incy,except,incy,incy).prom
+						.catch(function(e) { y -= 5 })
+						.then(function() { assert.equal(y,-2) }) // should get +1 +1 +1 -5 = -2
+
+				})
 		})
 
 }));

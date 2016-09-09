@@ -154,14 +154,33 @@ Promisifies a single function `fn` and returns it.
 
 === `Zousan.series(array | ...args) -> Promise`
 
-The `series` function takes a list of arguments or an array of values (which can be of any type, including *functions* and *promises*) and considers/processes them one by one. If an item is an Object or native type, it simply evaluates to itself. If it is a function, it evaluates to its return value. If it is a Promise, it evaluates to its resolved value. Similar to `compose` in functional libraries and langauges, when an item is a function or Promise, the value of the previous item is passed into that function or promise. The return value from a function or Promise is then used for the following item.
+The `series` function takes a list (either as separate arguments or as an array) whos items can be of any type and evaluates them one by one. A `Promise` is returned which will _resolve_ to the final evaluation of the series, or _reject_ upon a rejection/exception encountered during evaluation.
+
+==== Item Evaluation
+
+If an item is an Object or native type, it simply evaluates to itself. If it is a function, the function is called and evaluates to its return value. If it is a `Promise`, it evaluates to its resolved value. If it is a function that returns a `Promise` the function is called and the item evaulates to the Promises's resolved value.
+
+Similar to `compose` in functional libraries and langauges, when an item is a `function`, the value of the previous item is passed in as an argument. The return/resolved value is then used for the following item.
+
+.All Native Types Example:
+[source,javascript]
+----
+Zousan.series(1,2,3) // Resolves to 3
+----
+
+
+.Native type and function
+[source,javascript]
+----
+Zousan.series(2.5,Math.floor) // Resolves to 2
+----
 
 .Example 1
 [source,javascript]
 ----
 function add6(x) { return x + 6 }
 
-Zousan.series(1,2,3,add6,add6,log) // calls log with 15
+Zousan.series(3,add6,add6,log) // calls log with 15
 ----
 
 The above function is essentially doing this:
@@ -170,44 +189,94 @@ The above function is essentially doing this:
 ----
 function add6(x) { return x + 6 }
 
-Zousan.resolve(1)
-	.then(function(x) { return 2 })
-	.then(function(x) { return 3 })
+Zousan.resolve(3)
 	.then(add6)
 	.then(add6)
 	.then(log)
 ----
 
-Of course it is very handy when used with Promises:
+Of course it is very handy when used with Promises. The following function `getUserAlbumCovers` takes a user Id, makes an AJAX call to obtain the user object (`getUserObj`),  extracts the `albumList` property to make another AJAX call to `getAlbumsByIDList` to get a list of album objects, extract out each of their `id` values into a list and finally get the album art via the  `getAlbumCoversByIDList` AJAX call.
 
 [source,javascript]
 ----
-// Pass in a userID and get back a promise of a list of album cover objects of this user
 function getUserAlbumCovers(userId)
 {
-	// In order to call getUserObj with the userId, we simply place userId first in the series
-	// getUserObj returns a promise of a user object
-	// prop is curried extracts a named property from an object
-	// getAlbumsByIDList returns a Promise of a list of album objects
-	// pluck is curried extracts a list of values from a list of objects and a property name
-	// getAlbumCoversByIDList expects an array of album IDs and returns a Promise of album cover objects
-	return Zousan.series(userId, getUserObj, prop("albumList"), getAlbumsByIDList, pluck("id"), getAlbumCoversByIDList)
+	return Zousan.series(userId, getUserObj, prop("albumList"),
+			getAlbumsByIDList, pluck("id"), getAlbumCoversByIDList)
 }
 ----
 
 Which is equivilent to:
+
 [source,javascript]
 ----
-// Pass in a userID and get back a promise of a list of album cover objects of this user
 function getUserAlbumCovers(userId)
 {
-	return getUserObj(userId)
-		.then(prop("albumList"))
-		.then(getAlbumsByIDList)
-		.then(pluck("id"))
-		.then(getAlbumCoversByIDList)
+	return getUserObj(userId).then(prop("albumList"))
+			.then(getAlbumsByIDList).then(pluck("id")).then(getAlbumCoversByIDList)
 }
 ----
+
+As you can see, it mostly just removes the need to continously call `then` on each item - which helps remove a lot of noise when trying to read a long series of tasks.
+
+It also offers the ability to inject native types or Promises into the series directly:
+
+[source,javascript]
+----
+function test(p) // some promise passed in
+{
+	return Zousan.series(user, render, p, log) // call render(user) then wait for p to complete and log the result
+}
+----
+
+Equivilent using `then` chains:
+
+[source,javascript]
+----
+function test(p) // some promise passed in
+{
+	return Promise.resolve(user) // call render(user) then wait for p to complete and log the result
+		.then(render)
+		.then(function() { return p })
+		.then(log)
+}
+----
+
+
+
+=== `Zousan.tSeries(array | ...args) -> { prom: Promise, res: [resultsArray] }`
+
+Similar to the `series` function above, but tracks results from each step in the series and makes them available via the `res` property as a results array. The `Promise` is accessable via the `prom` property.
+
+.The simplest example:
+[source,javascript]
+----
+var ts = Zousan.tSeries(1,2,3)
+// ts.prom is a Promise that resolves to 3
+// ts.res is the array [1,2,3]
+----
+
+.A bit more complex example:
+[source,javascript]
+----
+function add6(x) { return x + 6 }
+
+// Return the specified value plus 3 after 100ms
+function add3Later(x) {
+	return new Zousan(function(resolve) {
+			setTimeout(resolve,100,x+3)
+		})
+	}
+
+var ts = tSeries(1,2,3,add6,add3Later)
+ts.prom.then(function(final) {
+		// ts.res[0] = 1
+		// ts.res[3] = 9
+		// ts.res[4] = 12
+		// final = 12
+	})
+----
+
 
 == License
 
