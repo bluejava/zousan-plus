@@ -127,7 +127,7 @@
 				assert.equal(mo.a,10)
 				assert.equal(mo.b,20)
 
-				return mo.c(55, "hi")
+				return mo.cProm(55, "hi") // cProm is the promisified version of c!
 					.then(function(v) {
 							assert.equal(v,"hi")
 							assert.equal(mo.d(1,2,3),6)

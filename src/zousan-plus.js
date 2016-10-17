@@ -3,9 +3,9 @@
 // Author: Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)
 // License: MIT
 
-(function (global, factory) {
-	if(typeof define === "function" && define.amd)
-		define(["../node_modules/zousan/src/zousan"], factory)
+(function(global, factory) {
+	if(typeof define === "function" && define.amd) // eslint-disable-line no-undef
+		define(["../node_modules/zousan/src/zousan"], factory) // eslint-disable-line no-undef
 	else
 		if(typeof exports === "object")
 			module.exports = factory(require("zousan"))
@@ -19,20 +19,20 @@
 
 	/* ==== map ==== */
 
-	function map(iter,fn) {
+	function map(iter, fn) {
 
 			if(iter.then)
-				return iter.then(function(iter) {
-						return map(iter,fn)
+				return iter.then(function(iterResolved) {
+						return map(iterResolved, fn)
 					})
 			else
 				if(iter.map)
-					return map2(iter,fn)
+					return map2(iter, fn)
 				else
 					throw Error("first argument must be a promise or an iterable")
 		}
 
-	function map2(iter,fn)
+	function map2(iter, fn)
 	{
 		return Zousan.all(
 				iter.map(function(item) {
@@ -46,30 +46,30 @@
 	/* ====== Series ====== */
 
 	// Handles the results of the evaluation of an item in the series
-	function processSeriesResult(ar,i,results,val)
+	function processSeriesResult(ar, i, results, val)
 	{
 		results[i] = val
 		i++
 		if(ar.length > i)
-			return processSeriesItem(ar,i,results,val)
+			return processSeriesItem(ar, i, results, val)
 		else
 			return val
 	}
 
 	// Handles the evaluation of an item in the series.
-	function processSeriesItem(ar,i,results,inval)
+	function processSeriesItem(ar, i, results, inval)
 	{
 		var nextVal = ar[i]
 
 		if(typeof nextVal === "function")
-			nextVal = nextVal.call(null,inval)
+			nextVal = nextVal.call(null, inval)
 
 		if(nextVal && nextVal.then)
 			return nextVal.then(function(resVal) {
-					return processSeriesResult(ar,i,results,resVal)
+					return processSeriesResult(ar, i, results, resVal)
 				})
 
-		return processSeriesResult(ar,i,results,nextVal)
+		return processSeriesResult(ar, i, results, nextVal)
 	}
 
 	// Tracking Series - evaluates each item in a series, tracking each result in an
@@ -80,7 +80,7 @@
 		if(!ar) return undefined
 
 		// ...but we convert the series into an array either way
-		if(!Array.isArray(ar))
+		if(arguments.length > 1 || !Array.isArray(ar))
 			ar = Array.prototype.slice.call(arguments)
 
 		var z = new Zousan(),
@@ -91,7 +91,7 @@
 		Zousan.soon(function() {
 				try
 				{
-					z.resolve(processSeriesItem(ar,0,results))
+					z.resolve(processSeriesItem(ar, 0, results))
 				}
 				catch(er) { z.reject(er) }
 			})
@@ -101,9 +101,9 @@
 
 	// The series utility is simply a tracking series that ignores the results tracking and returns
 	// a promise directly
-	function series(ar)
+	function series()
 	{
-		return tSeries.apply(null,arguments).prom
+		return tSeries.apply(null, arguments).prom
 	}
 
 	/* ===== END series / tSeries ====== */
@@ -111,10 +111,10 @@
 
 	/* ==== promisify ==== */
 	var defaultCBArgNames = [ "cb", "callback", "done", "callback_" ]
-	function shouldPromisify(ob,conf)
+	function shouldPromisify(ob, conf)
 	{
-		// no need for argument inspection if replaceAll is specified
-		if(conf.replaceAll)
+		// no need for argument inspection if promisifyAll is specified
+		if(conf.promisifyAll)
 			return true
 
 		if(conf.fnNames)
@@ -125,25 +125,27 @@
 		var args = getArgs(ob)
 		if(args.length)
 		{
-			var lastArg = args[args.length-1]
+			var lastArg = args[args.length - 1]
 			if(cbArgNames.indexOf(lastArg) >= 0)
 				return true
 		}
+
+		return false
 	}
 
 	function promisifyFn(fn)
 	{
 		return function() {
-				var ca = Array.prototype.splice.call(arguments,0),
+				var ca = Array.prototype.splice.call(arguments, 0),
 					me = this
-				return new Zousan(function(resolve,reject) {
-						ca.push(function(er,val) {
+				return new Zousan(function(resolve, reject) {
+						ca.push(function(er, val) {
 								if(er)
 									reject(er)
 								else
 									resolve(val)
 							})
-							fn.apply(me,ca)
+							fn.apply(me, ca)
 					})
 			}
 	}
@@ -157,8 +159,8 @@
 
 		for(var n in ob)
 			if(typeof ob[n] === "function")
-				if(shouldPromisify(ob[n],conf))
-					ob[n] = promisifyFn(ob[n])
+				if(shouldPromisify(ob[n], conf))
+					ob[n + Zousan.PROMISIFY_FN_EXTENSION] = promisifyFn(ob[n])
 
 		return ob
 	}
@@ -175,6 +177,9 @@
 	}
 
 	function trim(s) { return s.trim() }
+
+	// The extension for all promisified versions of functions. Change to "" to replace originals (not recommended)
+	Zousan.PROMISIFY_FN_EXTENSION = "Prom"
 
 	Zousan.map = map
 	Zousan.promisify = promisify

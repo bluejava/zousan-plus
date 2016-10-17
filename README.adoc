@@ -3,15 +3,17 @@
 
 == Introduction
 
-Extensions for https://github.com/bluejava/zousan[Zousan].
+Extensions for https://github.com/bluejava/zousan[Zousan 🐘].
 
 The goal of Zousan was to stay small and light. But sometimes you wan't some additional expressive power. Rather than package that into Zousan, I decided to make a separate entry point - and give you the choice on a per-project basis.
 
 Just need lightning fast promises on the down low? Use https://github.com/bluejava/zousan[Zousan].
 
-Could benefit from additional expressive power ala `map`, `promisify`, `series`, etc? Use `Zousan-plus`.
+Could benefit from additional expressive power ala <<map,`map`>>, <<promisify,`promisify`>>, <<series,`series`>>, or <<tSeries,`tSeries`>>? Use `Zousan-plus`.
 
 Of course, you can also just grab individual functions from this to paste into your project and use with Zousan or native Promises if you want to keep things minimal. This code is fairly small, well documented and easy to steal from. ;-)
+
+For more information about whats to come here or where these decisions came from, check out the link:moreInfo.adoc[moreInfo] document.
 
 == Downloading
 
@@ -20,6 +22,13 @@ Grab from the npm repository via:
 [source,bash]
 ----
 npm install --save zousan-plus
+----
+
+or via https://yarnpkg.com[yarn]:
+
+[source,bash]
+----
+yarn add zousan-plus
 ----
 
 Or using Bower:
@@ -66,11 +75,11 @@ If you are not using a module loader and/or wish to define things globally, you 
 
 == API
 
-=== `Zousan.map(array,fn) -> newArray`
+=== [[map]]`Zousan.map(array,fn) -> newArray`
 
 The `map` function takes an Array and a function and returns a new Array containing the result of passing each respective item from the first array through the function.
 
-This is much like the `Array.map` function, and in fact can be used interchangably in many instances. The difference is:
+This is much like the `Array.map` function, and in fact can be used interchangeably in many instances. The difference is:
 
 . The `array` passed in may optionally be a `Promise` that resolves to an `Array`.
 . The function `fn` may return a value *or* a `Promise` which resolves to a value to be stored in the resulting `newArray`.
@@ -128,39 +137,41 @@ function getMultipleAlbumInfo(albumIdArray)
 }
 ----
 
-=== `Zousan.promisify(object, conf) -> promisifiedObject`
+=== [[promisify]]`Zousan.promisify(object, conf) -> promisifiedObject`
 
-Pass in an Object with functions as properties and all functions that expect callbacks will be replaced with `Promise` based functions. The behavior of the promisification can be effected via the `conf` configuration object.
+Pass in an Object (i.e. module) and all functions that appear to expect callbacks will have new functions created that are equivalent but return a `Promise` instead. The newly available "promisified" function will be named `<original function name>Prom` by default - but this can be confiigured by setting `Zousan.PROMISIFY_FN_EXTENSION` to a different extension. If `Zousan.PROMISIFY_FN_EXTENSION` is set to `""` (empty string) then the original function will be replaced by the promisified version. This breaks some modules, so is not recommended.
+
+The behavior of the promisification can be effected via the `conf` configuration object.
 
 Promisification is an imperfect process, as it can depend on how the underlying functions are written. This `promisify` function works by examining all functions contained on the object and if the argument list ends with one of the recognized callback names, it is promisified. The current list of callback arguments is `"cb", "callback", "done" and "callback_"`
 
-When a function is promisified, it replaces the function on the object with a function that returns a `Zousan Promise`. Callback functions are expected to be called with two arguments: `callback(error, value)`. The promise will resolve when the callback is called with a *null first argument*, using the *second argument* as the resolved value. If the first argument is non-null, the promise is rejected.
+Callback functions are expected to be called with two arguments: `callback(error, value)`. The promise will resolve when the callback is called with a *_falsy_ first argument* (i.e. when the error is `null` or `undefined`), and using the *second argument* as the resolved value. If the first argument is set, the promise is rejected with the error value.
 
-NOTE: The promisified functions may still be used with callbacks.
-
-WARNING: In some cases, promisification has been known to break certain functions or objects. This is due to the nature in which functions are replaced within objects. Often these problems can be avoided by specifying only those functions that you need promisified in the `fnNames` configuration option.
+WARNING: In some cases, promisification has been known to break certain functions or modules. Since version 2.0 of `Zousan-plus` (and adding rather than replacing functions) this issue has been largely mitigated. If it still occurs, try specifying only those functions that you need promisified in the `fnNames` configuration option.
 
 ==== `conf` configuration options
 
 |===
-| `replaceAll` | Replace all functions within the specified objects rather than examining the arguments for the presence of a callback
-| `fnNames` | An array of function names to replace within the specified object. This overrides the default behavior of examining the last argument name of each function.
-| `cbArgNames` | An array of callback names which overrides the default list of `["cb", "callback", "done", "callback_"]`. It is the presence of one of these named arguments as the final argument of a function which triggers promisification (unless `replaceAll` or `fnNames` is used)
+| Option | Description | default
+
+| `promisifyAll` | (Previously `replaceAll`) Promisify all functions within the specified objects rather than examining the arguments for the presence of a callback. | false
+| `fnNames` | An array of function names to promisify within the specified object. This overrides the default behavior of examining the last argument name of each function. | null
+| `cbArgNames` | An array of callback names which overrides the default list. It is the presence of one of these named arguments as the final argument of a function which triggers promisification (unless `promisifyAll` or `fnNames` is used) |  `["cb", "callback", "done", "callback_"]`
 |===
 
 === `Zousan.promisifyFn(fn) -> promisifiedFn`
 
 Promisifies a single function `fn` and returns it.
 
-=== `Zousan.series(array | ...args) -> Promise`
+=== [[series]]`Zousan.series(array | ...args) -> Promise`
 
-The `series` function takes a list (either as separate arguments or as an array) whos items can be of any type and evaluates them one by one. A `Promise` is returned which will _resolve_ to the final evaluation of the series, or _reject_ upon a rejection/exception encountered during evaluation.
+The `series` function takes a list (either as separate arguments or as an array) who's items can be of any type and evaluates them one by one. A `Promise` is returned which will _resolve_ to the final evaluation of the series, or _reject_ upon a rejection/exception encountered during evaluation.
 
 ==== Item Evaluation
 
-If an item is an Object or native type, it simply evaluates to itself. If it is a function, the function is called and evaluates to its return value. If it is a `Promise`, it evaluates to its resolved value. If it is a function that returns a `Promise` the function is called and the item evaulates to the Promises's resolved value.
+If an item is an Object or native type, it simply evaluates to itself. If it is a function, the function is called and evaluates to its return value. If it is a `Promise`, it evaluates to its resolved value. If it is a function that returns a `Promise` the function is called and the item evaluates to the Promises's resolved value.
 
-Similar to `compose` in functional libraries and langauges, when an item is a `function`, the value of the previous item is passed in as an argument. The return/resolved value is then used for the following item.
+Similar to `compose` in functional libraries and languages, when an item is a `function`, the value of the previous item is passed in as an argument. The return/resolved value is then used for the following item.
 
 .All Native Types Example:
 [source,javascript]
@@ -206,7 +217,7 @@ function getUserAlbumCovers(userId)
 }
 ----
 
-Which is equivilent to:
+Which is equivalent to:
 
 [source,javascript]
 ----
@@ -217,7 +228,7 @@ function getUserAlbumCovers(userId)
 }
 ----
 
-As you can see, it mostly just removes the need to continously call `then` on each item - which helps remove a lot of noise when trying to read a long series of tasks.
+As you can see, it mostly just removes the need to continuously call `then` on each item - which helps remove a lot of noise when trying to read a long series of tasks.
 
 It also offers the ability to inject native types or Promises into the series directly:
 
@@ -229,7 +240,7 @@ function test(p) // some promise passed in
 }
 ----
 
-Equivilent using `then` chains:
+Equivalent using `then` chains:
 
 [source,javascript]
 ----
@@ -244,9 +255,9 @@ function test(p) // some promise passed in
 
 
 
-=== `Zousan.tSeries(array | ...args) -> { prom: Promise, res: [resultsArray] }`
+=== [[tSeries]]`Zousan.tSeries(array | ...args) -> { prom: Promise, res: [resultsArray] }`
 
-Similar to the `series` function above, but tracks results from each step in the series and makes them available via the `res` property as a results array. The `Promise` is accessable via the `prom` property.
+Similar to the `series` function above, but tracks results from each step in the series and makes them available via the `res` property as a results array. The `Promise` is accessible via the `prom` property.
 
 .The simplest example:
 [source,javascript]
