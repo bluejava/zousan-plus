@@ -9,7 +9,7 @@ The goal of Zousan was to stay small and light. But sometimes you wan't some add
 
 Just need lightning fast promises on the down low? Use https://github.com/bluejava/zousan[Zousan].
 
-Could benefit from additional expressive power ala <<map,`map`>>, <<promisify,`promisify`>>, <<series,`series`>>, or <<tSeries,`tSeries`>>? Use `Zousan-plus`.
+Could benefit from additional expressive power ala `map`, `promisify`, `series`, or `tSeries`? Use `Zousan-plus`.
 
 Of course, you can also just grab individual functions from this to paste into your project and use with Zousan or native Promises if you want to keep things minimal. This code is fairly small, well documented and easy to steal from. ;-)
 
@@ -75,7 +75,7 @@ If you are not using a module loader and/or wish to define things globally, you 
 
 == API
 
-=== [[map]]`Zousan.map(array,fn) -> newArray`
+=== `Zousan.map(array,fn) -> newArray`
 
 The `map` function takes an Array and a function and returns a new Array containing the result of passing each respective item from the first array through the function.
 
@@ -137,7 +137,7 @@ function getMultipleAlbumInfo(albumIdArray)
 }
 ----
 
-=== [[promisify]]`Zousan.promisify(object, conf) -> promisifiedObject`
+=== `Zousan.promisify(object, conf) -> promisifiedObject`
 
 Pass in an Object (i.e. module) and all functions that appear to expect callbacks will have new functions created that are equivalent but return a `Promise` instead. The newly available "promisified" function will be named `<original function name>Prom` by default - but this can be confiigured by setting `Zousan.PROMISIFY_FN_EXTENSION` to a different extension. If `Zousan.PROMISIFY_FN_EXTENSION` is set to `""` (empty string) then the original function will be replaced by the promisified version. This breaks some modules, so is not recommended.
 
@@ -163,7 +163,7 @@ WARNING: In some cases, promisification has been known to break certain function
 
 Promisifies a single function `fn` and returns it.
 
-=== [[series]]`Zousan.series(array | ...args) -> Promise`
+=== `Zousan.series(array | ...args) -> Promise`
 
 The `series` function takes a list (either as separate arguments or as an array) who's items can be of any type and evaluates them one by one. A `Promise` is returned which will _resolve_ to the final evaluation of the series, or _reject_ upon a rejection/exception encountered during evaluation.
 
@@ -253,9 +253,7 @@ function test(p) // some promise passed in
 }
 ----
 
-
-
-=== [[tSeries]]`Zousan.tSeries(array | ...args) -> { prom: Promise, res: [resultsArray] }`
+=== `Zousan.tSeries(array | ...args) -> { prom: Promise, res: [resultsArray] }`
 
 Similar to the `series` function above, but tracks results from each step in the series and makes them available via the `res` property as a results array. The `Promise` is accessible via the `prom` property.
 
