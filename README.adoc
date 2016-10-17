@@ -286,6 +286,43 @@ ts.prom.then(function(final) {
 	})
 ----
 
+=== `Zousan.namedAll(valuesObject) -> Promise resultsObject`
+
+just like `Promise.all` except each item is a name/value pair and the resolved value is an object with name/value pairs with the resolved values.
+
+A mix of values, functions, and promises can be used as values. Promises and functions that return promises are first resolved before assigned.
+
+.Example
+[source,javascript]
+----
+return Zousan.namedAll({
+		id: userId,  // Integer
+		pb: startProgressBar, // function whose return is ignored
+		user: getUser(userId), // returns a promise
+		items: getUserItemList(userId) // returns a promise
+	})
+	.then(function(ob) {
+			// Here ob contains the following:
+			// { id: userId, pb: <??>, user: userObject <from resolved promise>, items: itemList <from promise> }
+			endProgressBar()
+		})
+	.catch(function(err) {
+			// lets hope this doesn't happen!
+		})
+----
+
+Note: With function values, you can add the parens (execute immediately) or not. If you do, it is executed BEFORE calling `Zousan.namedAll` and its result (which can be a `Promise`) is assigned (or resolved and assigned). If you do not, `namedAll` will detect its a function and call it (with no arguments). If you need to pass arguments into a function, you will need to use the former style.
+
+In the following example, the functions `f1` and `f2` are both evaluated and their results assigned to `x` and `y` - but `f1` is executed *before* calling namedAll and `f2` is executed during the processing in `namedAll`. In practice there is little distinction, and the result will be the same.
+
+.Example of immediate and non-immediate functions
+[source,javascript]
+----
+return Zousan.namedAll({
+		x: f1(),	// this is executed immediately - its result is used as arg to namedAll
+		y: f2		// this function is passed to namedAll - and namedAll executes it
+	})
+----
 
 == License
 

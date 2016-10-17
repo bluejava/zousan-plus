@@ -62,7 +62,7 @@
 		var nextVal = ar[i]
 
 		if(typeof nextVal === "function")
-			nextVal = nextVal.call(null, inval)
+			nextVal = nextVal.call(null, inval) // eslint-disable-line no-useless-call
 
 		if(nextVal && nextVal.then)
 			return nextVal.then(function(resVal) {
@@ -72,8 +72,24 @@
 		return processSeriesResult(ar, i, results, nextVal)
 	}
 
-	// Tracking Series - evaluates each item in a series, tracking each result in an
-	// array that is returned along with the final promise of the series completion
+	/*
+		Tracking Series
+
+		Evaluates each item in a series, tracking each result in an array that is returned
+		along with the final promise of the series completion.
+
+		Example:
+
+		var ts = tSeries(1,2,3,add6,add3Later)
+		ts.prom.then(function(final) {
+				// ts.res[0] = 1
+				// ts.res[3] = 9
+				// ts.res[4] = 12
+				// final = 12
+			})
+	*/
+
+
 	function tSeries(ar)
 	{
 		// We accept either an array or items specified as individual arguments...
@@ -109,7 +125,22 @@
 	/* ===== END series / tSeries ====== */
 
 
-	/* ==== promisify ==== */
+	/*
+
+		==== promisify ====
+
+		Usage:
+		var fs = Zousan.promisify(require("fs"))
+		fs.readFileProm(name, { encoding: "utf-8"})
+			.then(function(contents) {
+					// contents of file available here
+				})
+			.catch(function(err) {
+					// handle errors here
+				})
+
+	*/
+
 	var defaultCBArgNames = [ "cb", "callback", "done", "callback_" ]
 	function shouldPromisify(ob, conf)
 	{
@@ -181,11 +212,66 @@
 	// The extension for all promisified versions of functions. Change to "" to replace originals (not recommended)
 	Zousan.PROMISIFY_FN_EXTENSION = "Prom"
 
+
+	/*
+
+			namedAll(valuesObject) -> Promise - just like Promise.all except each item is a name/value pair and the resolved value is
+				an object with name/value pairs with the resolved values. A mix of values, functions, and promises
+				can be used as values. Promises and functions that return promises are first resolved before assigned.
+
+			Example:
+				return Zousan.namedAll({
+						id: userId,  // Integer
+						pb: startProgressBar, // function whose return is ignored
+						user: getUser(userId), // returns a promise
+						items: getUserItemList(userId) // returns a promise
+					})
+					.then(function(ob) {
+							// Here ob contains the following:
+							// { id: userId, pb: <??>, user: userObject <from resolved promise>, items: itemList <from promise> }
+							endProgressBar()
+						})
+					.catch(function(err) {
+							// lets hope this doesn't happen!
+						})
+
+			Note: With function values, you can put the parens in (execute immediately) or not. If you do, it is executed BEFORE calling
+			Zousan.namedAll and its result (which can be a promise) is assigned (or resolved and assigned). If you do not, namedAll will
+			detect its a function and call it (with no arguments)
+
+	*/
+
+	function namedAll(ob)
+	{
+		// First gather ordered lists of keys and values respectively. While we are at it,
+		// 	evaluate any functions, since Promise.all does not offer that.
+		var keys = Object.keys(ob),
+			values = keys.map(function(key) {
+					if(typeof ob[key] === "function")
+						return ob[key].apply(null)
+					else
+						return ob[key]
+				})
+
+		// Zousan.all expects an array of values (mixed promises/non-promises ok)
+		return Zousan.all(values)
+			.then(function(ret) {
+					// Once all promises are resolved, we match them up with their keys
+					// based on the ordering
+					var retOb = { }
+					keys.forEach(function(name, i) {
+							retOb[name] = ret[i]
+						})
+					return retOb
+				})
+	}
+
 	Zousan.map = map
+	Zousan.namedAll = namedAll
 	Zousan.promisify = promisify
 	Zousan.promisifyFn = promisifyFn
 	Zousan.series = series
 	Zousan.tSeries = tSeries
 
 	return Zousan
-}));
+})); // eslint-disable-line semi

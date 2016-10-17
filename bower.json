@@ -1,6 +1,6 @@
 {
 	"name": "zousan-plus",
-	"version": "2.0.1",
+	"version": "2.1.0",
 	"description": "Extensions for Zousan Promises",
 	"main": "zousan-plus-min.js",
 	"authors": [
