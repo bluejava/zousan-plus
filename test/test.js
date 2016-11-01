@@ -313,4 +313,115 @@
 
         })
 
-})); // eslint-disable-line semi
+        section("Zousan.eval", function() {
+
+            test("Native object assignment", function() {
+                    return Zousan.eval(
+                            { name: "a", value: 100 },
+                            { name: "b", value: 200 },
+                            { name: "c", value: 300 }
+                        ).then(function(obj) {
+                                assert.deepEqual(obj, { a: 100, b: 200, c: 300 })
+                            })
+                })
+
+            test("Function call with immediate dependencies", function() {
+
+                    function add(a, b) { return a + b }
+
+                    return Zousan.eval(
+                            { name: "a", value: 10 },
+                            { name: "b", value: add, deps: [ "a", 22 ]},
+                            { name: "c", value: add, deps: [ "a", "b" ]}
+                        ).then(function(obj) {
+                                assert.deepEqual(obj, { a: 10, b: 32, c: 42 })
+                            })
+
+                })
+
+            test("Dependencies on promises", function() {
+
+                    function valueIn100(val) { return delayedValue(100, val) }
+                    function add(a, b) { return a + b }
+
+                    var a = valueIn100(33)
+
+                    return Zousan.eval(
+                            { name: "a", value: a },
+                            { name: "b", value: add, deps: [ 5, "a" ]}
+                        ).then(function(obj) {
+                                assert.deepEqual(obj, { a: 33, b: 38 })
+                            })
+                })
+
+            test("Dependencies on functions that return promises", function() {
+
+                    function add(a, b) { return a + b }
+                    function valueIn100(val) { return delayedValue(100, val) }
+
+                    return Zousan.eval(
+                            { name: "a", value: 20 },
+                            { name: "b", value: valueIn100, deps: [ "a" ]},
+                            { name: "c", value: add, deps: [ "a", "b" ]}
+                        ).then(function(obj) {
+                                assert.deepEqual(obj, { a: 20, b: 20, c: 40 })
+                            })
+
+                })
+
+            test("value types", function() {
+
+                    function get7() { return 7 }
+
+                    var myob = { }
+
+                    return Zousan.eval(
+                            { name: "a", value: 20 }, // native Integer type
+                            { name: "b", value: "hello" }, // native String type
+                            { name: "c", value: [1, 2, 3] }, // Array value
+                            { name: "d", value: get7 }, // function value
+                            { name: "e", value: null }, // null value
+                            { name: "f", value: 0 }, // 0 value
+                            { name: "g", value: undefined }, // undefined value
+                            { name: "h", value: myob } // object value
+                        ).then(function(obj) {
+                                // the g value works - but undefined fools assert.deepEqual
+                                assert.deepEqual(obj, { a: 20, b: "hello", c: [1, 2, 3], d: 7,
+                                        e: null, f: 0, g: undefined, h: myob })
+                            })
+                })
+
+            test("Workflow optimization", function() {
+
+                    /*
+                        In this test we have a series of resources to evaluate and a dependency chain
+                        that has various delays built into it. The best case scenerio will complete
+                        the full eval in 300ms (plus some small surplus). A non-optimized approach
+                        at resolving these resources could take much more. To ensure we optimize the
+                        workflow, we will time the evaluation and make sure it falls between 300 and
+                        320ms.
+                    */
+
+                    function add(a, b) { return a + b }
+                    function valueIn100(val) { return delayedValue(100, val) }
+
+                    var startTime = Date.now()
+
+                    return Zousan.eval(
+                            { name: "a", value: valueIn100, deps: [ 5 ] }, // should resolve in 100ms
+                            { name: "b", value: valueIn100, deps: [ 12 ]}, // should resolve in 100ms
+                            { name: "c", value: add, deps: [ "a", "b" ]},  // should resolve in 100ms (a,b simultaneous)
+                            { name: "d", value: valueIn100, deps: [ "c" ]}, // should resolve in 200ms
+                            { name: "e", value: valueIn100, deps: [ 4 ]}, // should resolve in 100ms
+                            { name: "f", value: add, deps: [ "e", "d" ]}, // should resolve in 200ms
+                            { name: "g", value: valueIn100, deps: [ "f" ]} // should resolve in 300ms
+                        ).then(function(obj) {
+                                assert.deepEqual(obj, { a: 5, b: 12, c: 17, d: 17, e: 4, f: 21, g: 21 })
+                                var totalTime = Date.now() - startTime
+                                assert(totalTime >= 300 && totalTime < 320) // 20ms of slackspace
+                            })
+
+                })
+        }) // end of Zousan.eval section
+
+}))

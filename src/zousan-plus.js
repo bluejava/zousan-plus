@@ -266,6 +266,51 @@
 				})
 	}
 
+
+	function eval(ar) // eslint-disable-line no-shadow-restricted-names
+	{
+		// We accept either an array or items specified as individual arguments...
+		// ...but we convert the series into an array either way
+		if(!Array.isArray(ar))
+			ar = Array.prototype.slice.call(arguments)
+
+		var items = { } // map names to items
+
+		// This forEach is where it all happens - we evaluate each item within the eval array.
+		// If there are dependencies, those are first resolved.
+		// Its the mother of all promise workflows is just 10 lines!
+		ar.forEach(function(zex, i) {
+			items[zex.name || ("_p" + i)] =
+				Zousan.all((zex.deps || []).map(function(arg) {
+							// even if items[arg] is undefined, using "arg in items" is true when the property exists
+							if(typeof arg === "string" && arg in items)
+								return items[arg]
+							else
+								return arg
+						}))
+					.then(function(dResults) {
+							var value = zex.value
+							if(typeof value === "function")
+								value = value.apply(null, dResults)
+							return value
+						})
+			})
+
+		// Now we just wait for each promise to complete - then assign the resolved value to its named property
+		var names = Object.keys(items),
+			itemVals = names.map(function(name) { return items[name] }) // Object.values()
+
+		return Zousan.all(itemVals)
+			.then(function(paResults) {
+					var results = { }
+					names.forEach(function(name, i) {
+							results[name] = paResults[i]
+						})
+					return results
+				})
+	}
+
+	Zousan.eval = eval
 	Zousan.map = map
 	Zousan.namedAll = namedAll
 	Zousan.promisify = promisify

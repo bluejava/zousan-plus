@@ -1,6 +1,6 @@
 {
 	"name": "zousan-plus",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"description": "Extensions for Zousan Promises",
 	"main": "zousan-plus-min.js",
 	"scripts": {
@@ -13,6 +13,7 @@
 		"zousan": "^2.2.2"
 	},
 	"devDependencies": {
+		"requirejs": "^2.3.2",
 		"tarsy": "latest",
 		"uglifyjs": "latest"
 	}
