@@ -17,22 +17,8 @@ In the 1.x.x versions of Zousan-plus I was replacing callback functions with pro
 
 After the 2.x.x changes in which promisified functions are _added_ to the module with a different name, these issues seem to be curtailed.  Though I am keeping an eye on it.
 
-== Coming Soon
+== 3.0.0
 
-I am working on the "holy grail" of asynchronous workflow functions - tentatively called `Zousan.eval` which allows a mixture of parallel processing, and serial processing in an optimized and super intuitive style. It looks like this
+=== eval -> evaluate
 
-Imagine you have 4 functions: `f1, f2, f3, f4`. Suppose that the result from `f1` is required to call `f2` and to call `f3` (but `f2` result is not needed for `f3`). And `f4` needs results from `f2` and `f3`:
-
-[source,javascript]
-----
-Zousan.eval(
-		{ name: "f1", value: f1 },
-		{ name: "f2", value: f2, dep: ["f1"] },
-		{ name: "f3", value: f3, dep: ["f1"] },
-		{ name: "f4", value: f4, dep: ["f2", "f3"] }
-	)
-----
-
-`eval` will execute `f1` immediately, then upon its return, will execute `f2` and `f3` simultaneously and then wait for both of them to return and feed their respective results into `f4`.
-
-I am working with it in a project, and if it turns out to be a useful approach, I will add it to Zousan-plus.
+ES6 forbids the use of eval as a function name - so it has been changed to evaluate.

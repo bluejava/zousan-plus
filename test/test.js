@@ -313,10 +313,10 @@
 
         })
 
-        section("Zousan.eval", function() {
+        section("Zousan.evaluate", function() {
 
             test("Native object assignment", function() {
-                    return Zousan.eval(
+                    return Zousan.evaluate(
                             { name: "a", value: 100 },
                             { name: "b", value: 200 },
                             { name: "c", value: 300 }
@@ -329,7 +329,7 @@
 
                     function add(a, b) { return a + b }
 
-                    return Zousan.eval(
+                    return Zousan.evaluate(
                             { name: "a", value: 10 },
                             { name: "b", value: add, deps: [ "a", 22 ]},
                             { name: "c", value: add, deps: [ "a", "b" ]}
@@ -346,7 +346,7 @@
 
                     var a = valueIn100(33)
 
-                    return Zousan.eval(
+                    return Zousan.evaluate(
                             { name: "a", value: a },
                             { name: "b", value: add, deps: [ 5, "a" ]}
                         ).then(function(obj) {
@@ -359,7 +359,7 @@
                     function add(a, b) { return a + b }
                     function valueIn100(val) { return delayedValue(100, val) }
 
-                    return Zousan.eval(
+                    return Zousan.evaluate(
                             { name: "a", value: 20 },
                             { name: "b", value: valueIn100, deps: [ "a" ]},
                             { name: "c", value: add, deps: [ "a", "b" ]}
@@ -375,7 +375,7 @@
 
                     var myob = { }
 
-                    return Zousan.eval(
+                    return Zousan.evaluate(
                             { name: "a", value: 20 }, // native Integer type
                             { name: "b", value: "hello" }, // native String type
                             { name: "c", value: [1, 2, 3] }, // Array value
@@ -407,7 +407,7 @@
 
                     var startTime = Date.now()
 
-                    return Zousan.eval(
+                    return Zousan.evaluate(
                             { name: "a", value: valueIn100, deps: [ 5 ] }, // should resolve in 100ms
                             { name: "b", value: valueIn100, deps: [ 12 ]}, // should resolve in 100ms
                             { name: "c", value: add, deps: [ "a", "b" ]},  // should resolve in 100ms (a,b simultaneous)

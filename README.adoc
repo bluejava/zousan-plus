@@ -75,11 +75,11 @@ If you are not using a module loader and/or wish to define things globally, you 
 
 == API
 
-=== `Zousan.eval(array | ...args) => Promise <resultsObject>`
+=== `Zousan.evaluate(array | ...args) => Promise <resultsObject>`
 
 Evaluate a series of name/value pairs, optimizing the workflow for maximum asynchronisity. This is the _holy grail_ for managing complex `Promise/then` chains with varying dependencies. It also manages values between promises and function calls to allow calling functions with eventual values out of order, or in multiples.
 
-`Zousan.eval` is called with a series of name/value definitions (items). These items can be specified as a list of arguments to `eval` or contained within an `Array`. The `resultsObject` that is eventually returned contains properties for each item based on its name containing the respective value.
+`Zousan.evaluate` is called with a series of name/value definitions (items). These items can be specified as a list of arguments to `evaluate` or contained within an `Array`. The `resultsObject` that is eventually returned contains properties for each item based on its name containing the respective value.
 
 items can contain the following properties:
 
@@ -94,7 +94,7 @@ items can contain the following properties:
 .Example
 [source,javascript]
 ----
- Zousan.eval(
+ Zousan.evaluate(
 		{ name: "a", value: 100 },
 		{ name: "b", value: myPromise },
 		{ name: "c", value: getData, deps: [ "a", "b" ]}

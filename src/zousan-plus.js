@@ -267,7 +267,7 @@
 	}
 
 
-	function eval(ar) // eslint-disable-line no-shadow-restricted-names
+	function evaluate(ar) // eslint-disable-line no-shadow-restricted-names
 	{
 		// We accept either an array or items specified as individual arguments...
 		// ...but we convert the series into an array either way
@@ -310,7 +310,7 @@
 				})
 	}
 
-	Zousan.eval = eval
+	Zousan.evaluate = evaluate
 	Zousan.map = map
 	Zousan.namedAll = namedAll
 	Zousan.promisify = promisify
