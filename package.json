@@ -1,12 +1,29 @@
 {
 	"name": "zousan-plus",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "Extensions for Zousan Promises",
 	"main": "zousan-plus-min.js",
 	"scripts": {
 		"test": "tarsy test",
 		"build": "uglifyjs src/zousan-plus.js -c -m -o zousan-plus-min.js"
 	},
+	"repository":
+	{
+		"type": "git",
+		"url": "git+https://github.com/bluejava/zousan-plus.git"
+	},
+	"keywords":
+	[
+		"promises-aplus",
+		"promise",
+		"async",
+		"utilities",
+		"declarative",
+		"map",
+		"series",
+		"promisify",
+		"evaluate"
+	],
 	"author": "Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)",
 	"license": "MIT",
 	"dependencies": {
@@ -16,5 +33,6 @@
 		"requirejs": "^2.3.2",
 		"tarsy": "latest",
 		"uglifyjs": "latest"
-	}
+	},
+	"homepage": "https://github.com/bluejava/zousan-plus"
 }
