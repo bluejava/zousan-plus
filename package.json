@@ -1,19 +1,19 @@
 {
 	"name": "zousan-plus",
-	"version": "3.0.2",
+	"version": "4.0.0",
 	"description": "Extensions for Zousan Promises",
 	"main": "zousan-plus-min.js",
+	"module": "src/zousan-plus.js",
 	"scripts": {
-		"test": "tarsy test",
-		"build": "uglifyjs src/zousan-plus.js -c -m -o zousan-plus-min.js"
+		"test": "tarsy test && echo Note: to test with browser run yarn testAMD",
+		"testAMD": "source test/testAMD.sh && open test/testAMD.html",
+		"build": "rollup -c"
 	},
-	"repository":
-	{
+	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bluejava/zousan-plus.git"
 	},
-	"keywords":
-	[
+	"keywords": [
 		"promises-aplus",
 		"promise",
 		"async",
@@ -27,12 +27,14 @@
 	"author": "Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)",
 	"license": "MIT",
 	"dependencies": {
-		"zousan": "^2.2.2"
+		"zousan": "^3.0.0"
 	},
 	"devDependencies": {
 		"requirejs": "^2.3.2",
-		"tarsy": "latest",
-		"uglifyjs": "latest"
+		"rollup": "^1.12.2",
+		"rollup-plugin-node-resolve": "^5.0.0",
+		"rollup-plugin-uglify": "^6.0.2",
+		"tarsy": "latest"
 	},
 	"homepage": "https://github.com/bluejava/zousan-plus"
 }

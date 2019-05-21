@@ -1,15 +1,12 @@
 = More Information
 
-Asynchronicity is an important part of any non-trivial user-facing application. Managing this behavior in a clear, intuitive and effective way is paramount. This is there are so many libraries and new language features that address this issue.
+Asynchronicity is an important part of any non-trivial user-facing application. Managing this behavior in a clear, intuitive and effective way is paramount.
 
-Promises are the foundation of most of the activity, as it provides an object representation of an asynchronous action - this is a crucial step in building more types of programatic flow including asynchronous activities.
+Promises are the foundation of most of the tooling surrounding asynchronicity, as it provides an object representation of an asynchronous action. This is a crucial step in building more types of programatic flow involving asynchronous activities.
 
-Some of the "up and coming" JavaScript features such as generators, yield, async & await are supposed to simplify working with promises and asynchronicity, but:
+But as useful as some of the newer language features, such as `async` and `await` are, they do not address all of the needs of modern application development.
 
-. They aren't here yet - unless you want to transpile
-. I'm not convinced they are the best solutions for most of the challenges we face.
-
-Many of these new language features seem aimed at hiding the asynchronous nature of an activity. I would rather make it clearly asynchronous, yet intuitive to reason about.
+*Zousan-Plus* was designed to be the "tool-belt" providing the additional necessary asynchronous tools one needs to effortlessly and efficiently handle these needs.
 
 == Promisification
 
@@ -22,3 +19,12 @@ After the 2.x.x changes in which promisified functions are _added_ to the module
 === eval -> evaluate
 
 ES6 forbids the use of eval as a function name - so it has been changed to evaluate.
+
+== 4.0.0
+
+*zousan-plus* can now be imported as an ES Module.
+
+For example:
+
+	import Zousan from "../extModules/zousan-plus"
+

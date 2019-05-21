@@ -1,9 +1,10 @@
 <html>
 	<head>
-		<script src="../node_modules/requirejs/require.js"></script>
+		<script src="lib/require.js"></script>
+		<!-- <script src="lib/zousan-plus-min.js"></script> -->
 		<script>
-			require([
-					"../node_modules/tarsy/src/tarsy"
+			requirejs([
+					"lib/tarsy.js"
 				], function(Tarsy) {
 
 					// Make these global for the test
@@ -11,7 +12,7 @@
 					window.test = Tarsy.test
 					window.assert = Tarsy.assert
 
-					require(["test"])	// load the test suite
+					requirejs(["test"])	// load the test suite
 
 					Tarsy.showResults()
 

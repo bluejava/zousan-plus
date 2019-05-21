@@ -34,16 +34,15 @@ or via https://yarnpkg.com[yarn]:
 yarn add zousan-plus
 ----
 
-Or using Bower:
-
-[source,bash]
-----
-bower install zousan-plus
-----
-
-Or just grab the single JavaScript file that you need: `zousan-plus.js` (or `zousan-plus-min.js` for a minimized version).
-
 == Loading / Instantiation
+
+=== ES Module
+
+For use in modern JavaScript environments, or with a build tool that supports ES Modules such as https://webpack.github.io[webpack] or https://rollupjs.org/guide/en/[Rollup].
+
+----
+import Zousan from "../extModules/zousan-plus"
+----
 
 === commonJS
 

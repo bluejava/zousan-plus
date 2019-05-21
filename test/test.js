@@ -2,9 +2,9 @@
 
 (function(global, factory) {
     if(typeof define === "function" && define.amd) // eslint-disable-line no-undef
-        define(["../src/zousan-plus"], factory) // eslint-disable-line no-undef
+        define(["lib/zousan-plus-min"], factory) // eslint-disable-line no-undef
     else if(typeof exports === "object")
-        module.exports = factory(require("../src/zousan-plus.js"))
+        module.exports = factory(require(".."))
     else
         global.Zousan = factory()
 
@@ -31,7 +31,7 @@
 			if(!cb && typeof value === "function")
 			{
 				cb = value
-				value = ms
+				value = undefined
 			}
 
 			setTimeout(function() {
@@ -112,7 +112,7 @@
 
 				var pDelayedCallback = Zousan.promisify(delayedCallback)
 				return pDelayedCallback(123)
-					.then(function(value) { assert.equal(value, 123) })
+					.then(function(value) { assert.equal(value, undefined) })
 			})
 
 			test("Promisify mock object with mixed properties including callback functions", function() {
@@ -127,8 +127,8 @@
 
 				Zousan.promisify(mo)
 
-				assert.equal(mo.a, 10)
-				assert.equal(mo.b, 20)
+				assert.equal(mo.a, 10) // should be untouched
+				assert.equal(mo.b, 20) // should be untouched
 
 				return mo.cProm(55, "hi") // cProm is the promisified version of c!
 					.then(function(v) {
