@@ -1,6 +1,6 @@
 {
 	"name": "zousan-plus",
-	"version": "4.0.0",
+	"version": "4.0.1",
 	"description": "Extensions for Zousan Promises",
 	"main": "zousan-plus-min.js",
 	"module": "src/zousan-plus.js",
@@ -27,12 +27,13 @@
 	"author": "Glenn Crownover <glenn@bluejava.com> (http://www.bluejava.com)",
 	"license": "MIT",
 	"dependencies": {
-		"zousan": "^3.0.0"
+		"zousan": "^3.0.1"
 	},
 	"devDependencies": {
 		"requirejs": "^2.3.2",
 		"rollup": "^1.12.2",
 		"rollup-plugin-node-resolve": "^5.0.0",
+		"rollup-plugin-terser": "^5.0.0",
 		"rollup-plugin-uglify": "^6.0.2",
 		"tarsy": "latest"
 	},

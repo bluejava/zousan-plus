@@ -1,5 +1,6 @@
 import resolve from 'rollup-plugin-node-resolve'
 import { uglify } from "rollup-plugin-uglify"
+import { terser } from "rollup-plugin-terser"
 
 export default {
 	input: 'src/zousan-plus.js',
@@ -11,6 +12,7 @@ export default {
 	},
 	plugins: [
 		resolve(),
-		uglify()
+		// uglify(),
+		terser()
 	]
 }
