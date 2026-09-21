@@ -1,6 +1,6 @@
 {
 	"name": "zousan-plus",
-	"version": "4.0.1",
+	"version": "4.0.2",
 	"description": "Extensions for Zousan Promises",
 	"main": "zousan-plus-min.js",
 	"module": "src/zousan-plus.js",
