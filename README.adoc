@@ -4,6 +4,24 @@ A small collection of super useful utility functions for managing complex async 
 
 :toc:
 
+== Deprecated
+
+Zousan-plus is no longer under development. The repository and published package will remain available so existing users are not broken.
+
+Zousan 4.3.0 includes the maintained workflow helpers as side-effect-free imports:
+
+[source,javascript]
+----
+import { evaluate, evaluateResults } from "zousan/evaluate"
+import { series } from "zousan/series"
+----
+
+Use `evaluate` when the workflow should resolve to its final value. Use `evaluateResults` when it should resolve to an object containing every named result.
+
+The other Zousan-plus helpers, `map`, `namedAll`, `promisify`, `promisifyFn`, and `tSeries`, have no direct replacement in Zousan. Use the standard Promise API or a focused library if you still need that behavior.
+
+The legacy documentation below remains available for existing users.
+
 == Introduction
 
 Extensions for https://github.com/bluejava/zousan[Zousan 🐘].

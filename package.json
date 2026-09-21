@@ -30,6 +30,7 @@
 		"zousan": "^3.0.1"
 	},
 	"devDependencies": {
+		"esm": "^3.2.25",
 		"requirejs": "^2.3.2",
 		"rollup": "^1.12.2",
 		"rollup-plugin-node-resolve": "^5.0.0",
